@@ -209,3 +209,62 @@
 - [x] Bild-Auswahl-Dialog (3-5 Vorschläge)
 - [x] Fallback: Manueller Foto-Upload (Bild entfernen)
 - [x] Bild-Anzeige in Wunschliste
+
+
+## 🐛 Bugfixes & Verbesserungen (User-Feedback)
+
+### 1. UI-Design verbessern
+- [x] Home Screen: Kacheln größer und farbiger machen
+- [ ] Hefte Screen: Grid-Layout mit größeren Bildern
+- [ ] Aufgaben Screen: Checkboxen größer und deutlicher
+- [ ] Termine Screen: Kalender übersichtlicher gestalten
+- [ ] Shop Screen: Produktbilder prominenter anzeigen
+- [ ] Profil Screen: Statistiken visueller darstellen
+- [x] Generelle UI-Verbesserungen basierend auf Screenshots (Home)
+
+### 2. Foto-Upload reparieren
+- [ ] Foto-Upload in Hefte testen und fixen
+- [ ] Foto-Upload in Aufgaben testen und fixen
+- [ ] Foto-Upload in Termine testen und fixen
+- [ ] Kamera-Permissions prüfen
+- [ ] Galerie-Permissions prüfen
+- [ ] Fehlerbehandlung bei fehlgeschlagenen Uploads
+
+### 3. Kategorien-System überarbeiten- [x] Termine: Kategorien ändern von Schulfächern zu: Schule, Arzt, Mama, Papa, Freundin, Hobby, Sport, etc.
+- [ ] Aufgaben: Kategorien ändern zu: Haushalt, Schule, Hobby, Familie, etc.
+- [ ] Hefte: Nur Schulfächer (Mathe, Deutsch, etc.) - bleibt so
+- [ ] Kontakt-Fotos für Kategorien (z.B. Foto von Mama, Papa, Arzt) - TODO: Später- [x] Icon-Auswahl für Kategorien
+### 4. Eltern-Kontrolle implementieren
+- [ ] Kind kann KEINE Aufgaben selbst erstellen (nur Eltern)
+- [ ] Kind kann KEINE Kategorien bei Heften hinzufügen (nur Eltern)
+- [ ] Kind kann nur: Hefte fotografieren, Aufgaben abhaken, Termine ansehen
+- [ ] Elternapp: Aufgaben für Kind erstellen
+- [ ] Elternapp: Kategorien verwalten
+- [ ] Elternapp: Mehrere Kinder unterstützen
+- [ ] Elternapp: Proben/Tests fotografieren (für Nachhilfelehrer)
+- [ ] Elternapp: Hefte-Galerie ansehen (alle Fotos vom Kind)
+
+### 5. Bildgenerator fixen
+- [ ] Pixabay API-Key prüfen
+- [ ] Fehlerbehandlung bei API-Aufruf
+- [ ] Fallback: Emoji-Icons wenn Bildsuche fehlschlägt
+- [ ] Test mit echten Suchanfragen (Nintendo Switch, T-Shirt, etc.)
+
+### 6. Wunschlisten-System erweitern
+- [ ] Kind kann Wünsche erstellen (z.B. "Pferd" - 5 Sterne)
+- [ ] Eltern können Wünsche anpassen (z.B. "Pferd bis 15€" - 15 Sterne)
+- [ ] Eltern können Wünsche ablehnen
+- [ ] Eltern können Wünsche genehmigen
+- [ ] Eltern können Sterne-Preis ändern
+- [ ] Eltern können Beschreibung hinzufügen (z.B. "nur bis 15€")
+- [ ] Notifications: Kind wird benachrichtigt wenn Eltern Wunsch bearbeitet haben
+
+### 7. App-Zeit-Steuerung (Bonus-Feature)
+- [ ] Recherche: Google Family Link API
+- [ ] Recherche: Android Digital Wellbeing API
+- [ ] Konzept: Sterne gegen App-Zeit tauschen (z.B. 20 Sterne = 20 Min TikTok)
+- [ ] Integration mit Family Link (falls möglich)
+- [ ] Fallback: Timer in der App (Eltern müssen manuell freigeben)
+- [ ] Elternapp: App-Zeit-Regeln festlegen
+- [ ] Kinderapp: Verbleibende App-Zeit anzeigen
+- [ ] Notifications: "Deine TikTok-Zeit läuft in 5 Min ab"

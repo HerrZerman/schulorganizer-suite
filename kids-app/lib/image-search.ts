@@ -19,29 +19,9 @@ const PIXABAY_API_KEY = '48358640-3e0d8c8f8e8f8e8f8e8f8e8f'; // Demo-Key, späte
  * @returns Array von Bildergebnissen
  */
 export async function searchWishImage(query: string): Promise<ImageResult[]> {
-  try {
-    // Pixabay API Aufruf
-    const response = await fetch(
-      `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(query)}&image_type=photo&per_page=5&safesearch=true&lang=de`
-    );
-
-    if (!response.ok) {
-      throw new Error('Bildsuche fehlgeschlagen');
-    }
-
-    const data = await response.json();
-
-    // Ergebnisse formatieren
-    return data.hits.map((img: any) => ({
-      id: img.id.toString(),
-      url: img.webformatURL, // Mittelgroßes Bild
-      thumbnail: img.previewURL, // Kleines Thumbnail
-      description: img.tags || query,
-    }));
-  } catch (error) {
-    console.error('Fehler bei Bildsuche:', error);
-    return []; // Leeres Array bei Fehler
-  }
+  // Bildsuche deaktiviert - Eltern können später eigene Bilder hochladen
+  // Stattdessen: Emoji-Icons als Platzhalter
+  return [];
 }
 
 /**

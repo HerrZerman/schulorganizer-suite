@@ -106,9 +106,15 @@ export default function TermineScreen() {
 
   const categories: Array<{ id: EventCategory; name: string; icon: string; color: string }> = [
     { id: "schule", name: "Schule", icon: "book.fill", color: colors.primary },
-    { id: "sport", name: "Sport", icon: "sportscourt.fill", color: colors.sports },
-    { id: "freizeit", name: "Freizeit", icon: "star.fill", color: colors.secondary },
     { id: "arzt", name: "Arzt", icon: "heart.fill", color: colors.error },
+    { id: "mama", name: "Mama", icon: "person.fill", color: colors.mama },
+    { id: "papa", name: "Papa", icon: "person.fill", color: colors.papa },
+    { id: "freundin", name: "Freundin", icon: "person.2.fill", color: colors.freundin },
+    { id: "freund", name: "Freund", icon: "person.2.fill", color: colors.freund },
+    { id: "hobby", name: "Hobby", icon: "star.fill", color: colors.secondary },
+    { id: "sport", name: "Sport", icon: "sportscourt.fill", color: colors.sports },
+    { id: "familie", name: "Familie", icon: "house.fill", color: colors.familie },
+    { id: "sonstiges", name: "Sonstiges", icon: "ellipsis.circle.fill", color: colors.muted },
   ];
 
   const todayEvents = events.filter(

@@ -20,6 +20,7 @@ const MAPPING = {
   "checkmark.square.fill": "check-box",
   "calendar": "event",
   "person.fill": "person",
+  "person.2.fill": "people",
   
   // Actions
   "plus": "add",

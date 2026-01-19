@@ -1,162 +1,180 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getTotalStars, loadTasks } from "@/lib/storage";
+import * as Haptics from "expo-haptics";
 
 /**
- * Home Screen - Dashboard für Kinder
- * 
- * Zeigt:
- * - Header mit Avatar, Name und Sterne-Counter
- * - 4 große Kacheln für Hauptfunktionen
- * - Navigation zu den jeweiligen Screens
+ * Home Screen - Hauptbildschirm der Kinderapp
+ * Zeigt Avatar, Sterne-Counter und 4 große Kacheln
  */
 export default function HomeScreen() {
   const router = useRouter();
   const colors = useColors();
-  const [stars, setStars] = useState(0);
-  const [childName, setChildName] = useState("Max");
+  const [totalStars, setTotalStars] = useState(0);
+  const [tasksCompleted, setTasksCompleted] = useState(0);
 
-  // Lade Sterne und Name beim Start
   useEffect(() => {
-    loadUserData();
+    loadData();
   }, []);
 
-  const loadUserData = async () => {
-    try {
-      const savedStars = await AsyncStorage.getItem("stars");
-      const savedName = await AsyncStorage.getItem("childName");
-      
-      if (savedStars) setStars(parseInt(savedStars, 10));
-      if (savedName) setChildName(savedName);
-    } catch (error) {
-      console.error("Fehler beim Laden der Daten:", error);
-    }
+  const loadData = async () => {
+    const stars = await getTotalStars();
+    setTotalStars(stars);
+    
+    const tasks = await loadTasks();
+    const completedToday = tasks.filter(
+      t => t.done && new Date(t.completedAt!).toDateString() === new Date().toDateString()
+    ).length;
+    setTasksCompleted(completedToday);
   };
 
-  // Kachel-Daten
   const tiles = [
     {
-      id: "hefte",
       title: "Hefte",
       icon: "book.fill" as const,
-      color: colors.math,
-      route: "/(tabs)/hefte" as const,
+      color: colors.primary,
+      route: "/hefte" as const,
+      emoji: "📚",
     },
     {
-      id: "aufgaben",
       title: "Aufgaben",
       icon: "checkmark.square.fill" as const,
       color: colors.accent,
-      route: "/(tabs)/aufgaben" as const,
+      route: "/aufgaben" as const,
+      emoji: "✅",
     },
     {
-      id: "termine",
       title: "Termine",
       icon: "calendar" as const,
       color: colors.secondary,
-      route: "/(tabs)/termine" as const,
+      route: "/termine" as const,
+      emoji: "📅",
     },
     {
-      id: "shop",
       title: "Sterne Shop",
       icon: "star.fill" as const,
-      color: colors.reward,
+      color: colors.star,
       route: "/shop" as const,
+      emoji: "⭐",
     },
   ];
 
-  return (
-    <ScreenContainer className="bg-gradient-to-b from-primary/10 to-background">
-      <View className="flex-1 p-6">
-        {/* Header mit Avatar und Sterne */}
-        <View className="flex-row items-center justify-between mb-8">
-          <View className="flex-row items-center gap-3">
-            {/* Avatar */}
-            <View className="w-16 h-16 rounded-full bg-primary items-center justify-center border-4 border-white shadow-lg">
-              <Text className="text-3xl">👦</Text>
-            </View>
-            {/* Name */}
-            <View>
-              <Text className="text-2xl font-bold text-foreground">{childName}</Text>
-              <Text className="text-sm text-muted">Klasse 3</Text>
-            </View>
-          </View>
-          
-          {/* Sterne-Counter */}
-          <View className="bg-star/20 px-4 py-2 rounded-full border-2 border-star/40">
-            <View className="flex-row items-center gap-1">
-              <IconSymbol name="star.fill" size={20} color={colors.star} />
-              <Text className="text-xl font-bold text-foreground">{stars}</Text>
-            </View>
-          </View>
-        </View>
+  const handleTilePress = (route: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push(route as any);
+  };
 
-        {/* Begrüßung */}
-        <View className="mb-6">
-          <Text className="text-3xl font-bold text-foreground mb-2">
-            Hallo {childName}! 👋
+  return (
+    <ScreenContainer className="bg-background">
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Header mit Avatar und Sternen */}
+        <View className="px-6 pt-6 pb-8">
+          {/* Avatar und Sterne-Counter */}
+          <View className="flex-row items-center justify-between mb-8">
+            {/* Avatar */}
+            <View className="flex-row items-center gap-4">
+              <View
+                className="w-20 h-20 rounded-full items-center justify-center"
+                style={{ backgroundColor: colors.primary + "30" }}
+              >
+                <Text className="text-5xl">👦</Text>
+              </View>
+              <View>
+                <Text className="text-2xl font-bold text-foreground">Max</Text>
+                <Text className="text-sm text-muted">Klasse 3</Text>
+              </View>
+            </View>
+
+            {/* Sterne-Counter */}
+            <View
+              className="px-6 py-4 rounded-3xl items-center"
+              style={{
+                backgroundColor: colors.star + "20",
+                borderWidth: 3,
+                borderColor: colors.star + "40",
+              }}
+            >
+              <Text className="text-4xl font-black" style={{ color: colors.star }}>
+                {totalStars}
+              </Text>
+              <Text className="text-xs font-semibold text-muted mt-1">⭐ Sterne</Text>
+            </View>
+          </View>
+
+          {/* Begrüßung */}
+          <Text className="text-4xl font-bold text-foreground mb-2">
+            Hallo Max! 👋
           </Text>
-          <Text className="text-base text-muted">
+          <Text className="text-lg text-muted">
             Was möchtest du heute machen?
           </Text>
         </View>
 
-        {/* 4 Kacheln (2x2 Grid) */}
-        <View className="flex-1 gap-4">
-          <View className="flex-row gap-4">
-            {tiles.slice(0, 2).map((tile) => (
+        {/* 4 große Kacheln (2x2 Grid) */}
+        <View className="px-6">
+          <View className="flex-row flex-wrap gap-4">
+            {tiles.map((tile) => (
               <TouchableOpacity
-                key={tile.id}
-                className="flex-1 aspect-square rounded-3xl p-6 items-center justify-center shadow-md"
-                style={{ backgroundColor: tile.color }}
-                onPress={() => router.push(tile.route)}
+                key={tile.title}
+                onPress={() => handleTilePress(tile.route)}
                 activeOpacity={0.8}
+                className="rounded-3xl p-8 items-center justify-center"
+                style={{
+                  width: "47%",
+                  aspectRatio: 1,
+                  backgroundColor: tile.color + "30",
+                  borderWidth: 3,
+                  borderColor: tile.color + "50",
+                  shadowColor: tile.color,
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 12,
+                  elevation: 8,
+                }}
               >
-                <View className="items-center gap-3">
-                  <View className="w-20 h-20 bg-white/30 rounded-full items-center justify-center">
-                    <IconSymbol name={tile.icon} size={40} color="#FFFFFF" />
-                  </View>
-                  <Text className="text-lg font-bold text-white text-center">
-                    {tile.title}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <View className="flex-row gap-4">
-            {tiles.slice(2, 4).map((tile) => (
-              <TouchableOpacity
-                key={tile.id}
-                className="flex-1 aspect-square rounded-3xl p-6 items-center justify-center shadow-md"
-                style={{ backgroundColor: tile.color }}
-                onPress={() => router.push(tile.route)}
-                activeOpacity={0.8}
-              >
-                <View className="items-center gap-3">
-                  <View className="w-20 h-20 bg-white/30 rounded-full items-center justify-center">
-                    <IconSymbol name={tile.icon} size={40} color="#FFFFFF" />
-                  </View>
-                  <Text className="text-lg font-bold text-white text-center">
-                    {tile.title}
-                  </Text>
-                </View>
+                {/* Emoji statt Icon für bessere Sichtbarkeit */}
+                <Text className="text-6xl mb-4">{tile.emoji}</Text>
+                
+                <Text
+                  className="text-xl font-bold text-center"
+                  style={{ color: colors.foreground }}
+                >
+                  {tile.title}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* Motivations-Text */}
-        <View className="mt-6 bg-success/20 p-4 rounded-2xl border border-success/30">
-          <Text className="text-sm text-center text-foreground">
-            💪 Du hast heute schon <Text className="font-bold">3 Aufgaben</Text> erledigt!
-          </Text>
+        {/* Motivations-Box */}
+        <View className="px-6 mt-8">
+          <View
+            className="p-6 rounded-3xl"
+            style={{
+              backgroundColor: colors.success + "20",
+              borderWidth: 2,
+              borderColor: colors.success + "40",
+            }}
+          >
+            <View className="flex-row items-center gap-3 mb-2">
+              <Text className="text-3xl">💪</Text>
+              <Text className="text-lg font-bold text-foreground">
+                Super gemacht!
+              </Text>
+            </View>
+            <Text className="text-base text-muted leading-relaxed">
+              Du hast heute schon <Text className="font-bold" style={{ color: colors.success }}>{tasksCompleted} Aufgaben</Text> erledigt!
+              {tasksCompleted === 0 && " Los geht's! 🚀"}
+              {tasksCompleted > 0 && tasksCompleted < 3 && " Weiter so! 🌟"}
+              {tasksCompleted >= 3 && " Du bist ein Star! ⭐"}
+            </Text>
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </ScreenContainer>
   );
 }

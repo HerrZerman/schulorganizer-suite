@@ -31,6 +31,13 @@ export const themeColors: {
   // Sterne & Belohnungen
   star: { light: string; dark: string };
   reward: { light: string; dark: string };
+  
+  // Kontakt-Kategorien
+  mama: { light: string; dark: string };
+  papa: { light: string; dark: string };
+  freundin: { light: string; dark: string };
+  freund: { light: string; dark: string };
+  familie: { light: string; dark: string };
 };
 
 declare const themeConfig: {

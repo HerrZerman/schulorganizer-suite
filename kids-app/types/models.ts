@@ -120,9 +120,14 @@ export interface Event {
 
 export type EventCategory = 
   | "schule" 
-  | "sport" 
-  | "freizeit" 
   | "arzt" 
+  | "mama" 
+  | "papa" 
+  | "freundin" 
+  | "freund"
+  | "hobby" 
+  | "sport" 
+  | "familie"
   | "sonstiges";
 
 // ============================================

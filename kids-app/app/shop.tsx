@@ -1,13 +1,12 @@
-import { View, Text, TouchableOpacity, FlatList, Alert, TextInput, Modal } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Alert, TextInput, Modal, Image } from "react-native";
 import { useState, useEffect } from "react";
-import { Image, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import type { RewardWish } from "@/types/models";
 import { loadWishes, addWish, updateWish, getTotalStars, spendStars } from "@/lib/storage";
-import { searchWishImage, getWishEmoji, type ImageResult } from "@/lib/image-search";
+import { getWishEmoji } from "@/lib/image-search";
 import * as Haptics from "expo-haptics";
 
 /**
@@ -21,9 +20,7 @@ export default function ShopScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newWishTitle, setNewWishTitle] = useState("");
   const [newWishPrice, setNewWishPrice] = useState("50");
-  const [searchResults, setSearchResults] = useState<ImageResult[]>([]);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
+
 
   useEffect(() => {
     loadData();
@@ -37,20 +34,7 @@ export default function ShopScreen() {
     setTotalStars(stars);
   };
 
-  // Automatische Bildsuche beim Tippen
-  const handleTitleChange = async (text: string) => {
-    setNewWishTitle(text);
-    
-    // Suche nach Bildern wenn mindestens 3 Zeichen
-    if (text.length >= 3) {
-      setIsSearching(true);
-      const results = await searchWishImage(text);
-      setSearchResults(results);
-      setIsSearching(false);
-    } else {
-      setSearchResults([]);
-    }
-  };
+
 
   const handleAddWish = async () => {
     if (!newWishTitle.trim()) {
@@ -68,7 +52,7 @@ export default function ShopScreen() {
       id: Date.now().toString(),
       childId: "default",
       title: newWishTitle,
-      imageUrl: selectedImage || undefined,
+
       starPrice: price,
       status: "active",
       createdAt: new Date(),
@@ -320,7 +304,7 @@ export default function ShopScreen() {
             <Text className="text-sm font-semibold text-foreground mb-2">Was wünschst du dir?</Text>
             <TextInput
               value={newWishTitle}
-              onChangeText={handleTitleChange}
+              onChangeText={setNewWishTitle}
               placeholder="z.B. Nintendo Switch, Huntrix T-Shirt"
               className="p-4 rounded-2xl text-base mb-4"
               style={{
@@ -330,56 +314,12 @@ export default function ShopScreen() {
               placeholderTextColor={colors.muted}
             />
 
-            {/* Bildsuche-Ergebnisse */}
-            {isSearching && (
-              <View className="mb-4">
-                <Text className="text-sm text-muted">🔍 Suche Bilder...</Text>
-              </View>
-            )}
-            
-            {searchResults.length > 0 && (
-              <View className="mb-6">
-                <Text className="text-sm font-semibold text-foreground mb-2">Wähle ein Bild:</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
-                  {searchResults.map((img) => (
-                    <TouchableOpacity
-                      key={img.id}
-                      onPress={() => {
-                        setSelectedImage(img.url);
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      }}
-                      className="rounded-2xl overflow-hidden"
-                      style={{
-                        borderWidth: selectedImage === img.url ? 3 : 0,
-                        borderColor: colors.primary,
-                      }}
-                    >
-                      <Image
-                        source={{ uri: img.thumbnail }}
-                        style={{ width: 100, height: 100 }}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-
-            {/* Ausgewähltes Bild anzeigen */}
-            {selectedImage && (
-              <View className="mb-4 items-center">
-                <Image
-                  source={{ uri: selectedImage }}
-                  style={{ width: 200, height: 200, borderRadius: 16 }}
-                  resizeMode="cover"
-                />
-                <TouchableOpacity
-                  onPress={() => setSelectedImage(null)}
-                  className="mt-2"
-                >
-                  <Text className="text-sm" style={{ color: colors.error }}>Bild entfernen</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+            {/* Hinweis: Bildsuche */}
+            <View className="mb-4 p-3 rounded-2xl" style={{ backgroundColor: colors.secondary + "20" }}>
+              <Text className="text-xs text-muted text-center">
+                💡 Tipp: Deine Eltern können später ein Produktbild hinzufügen!
+              </Text>
+            </View>
 
             {/* Preis */}
             <Text className="text-sm font-semibold text-foreground mb-2">Wie viele Sterne?</Text>

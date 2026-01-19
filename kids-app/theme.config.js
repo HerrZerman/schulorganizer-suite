@@ -32,6 +32,13 @@ const themeColors = {
   // Sterne & Belohnungen
   star: { light: '#FFD700', dark: '#FFC700' }, // Gold
   reward: { light: '#FFE5A0', dark: '#E6C878' }, // Gelb
+  
+  // Kontakt-Kategorien (für Termine)
+  mama: { light: '#FFD4E5', dark: '#E6B8CC' }, // Rosa
+  papa: { light: '#A8D8EA', dark: '#7CB8D1' }, // Blau
+  freundin: { light: '#D4C5F9', dark: '#B8A6E0' }, // Lavendel
+  freund: { light: '#B8E6D5', dark: '#95D4BE' }, // Mint
+  familie: { light: '#FFE5A0', dark: '#E6C878' }, // Gelb
 };
 
 module.exports = { themeColors };
