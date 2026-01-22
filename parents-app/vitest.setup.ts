@@ -64,4 +64,6 @@ vi.mock("expo-haptics", () => ({
 
 beforeAll(() => {
   // Global mocks setup
+  // @ts-ignore
+  global.__DEV__ = true;
 });

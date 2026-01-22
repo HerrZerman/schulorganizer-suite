@@ -7,6 +7,7 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Child, RewardWish, Task, NoteEntry, Event } from "@/types/models";
+import { logError, logWarning, logInfo, logSuccess } from "./debug-logger";
 
 // ============================================
 // STORAGE KEYS
@@ -31,12 +32,24 @@ async function loadData<T>(key: string): Promise<T[]> {
   try {
     const jsonValue = await AsyncStorage.getItem(key);
     if (jsonValue === null) {
+      // Keine Daten vorhanden (normaler Zustand bei erstem Start)
       return [];
     }
     const parsed = JSON.parse(jsonValue);
     // Datum-Strings zurück in Date-Objekte konvertieren
-    return Array.isArray(parsed) ? parsed.map(deserializeDates) : [];
+    const result = Array.isArray(parsed) ? parsed.map(deserializeDates) : [];
+    
+    // Erfolg loggen
+    await logInfo("Storage.loadData", `${result.length} Einträge von ${key} geladen`);
+    return result;
   } catch (error) {
+    // Fehler beim Laden protokollieren
+    await logError(
+      "Storage.loadData",
+      `Fehler beim Laden von ${key}`,
+      { key },
+      error as Error
+    );
     console.error(`Fehler beim Laden von ${key}:`, error);
     return [];
   }
@@ -49,7 +62,17 @@ async function saveData<T>(key: string, data: T[]): Promise<void> {
   try {
     const jsonValue = JSON.stringify(data);
     await AsyncStorage.setItem(key, jsonValue);
+    
+    // Erfolg loggen
+    await logInfo("Storage.saveData", `${data.length} Einträge in ${key} gespeichert`);
   } catch (error) {
+    // Fehler beim Speichern protokollieren
+    await logError(
+      "Storage.saveData",
+      `Fehler beim Speichern von ${key}`,
+      { key, dataLength: data.length },
+      error as Error
+    );
     console.error(`Fehler beim Speichern von ${key}:`, error);
     throw error;
   }
@@ -99,40 +122,103 @@ export async function saveChildren(children: Child[]): Promise<void> {
  * Kind hinzufügen
  */
 export async function addChild(child: Omit<Child, "id" | "createdAt">): Promise<Child> {
-  const children = await loadChildren();
-  const newChild: Child = {
-    ...child,
-    id: generateId(),
-    createdAt: new Date(),
-  };
-  children.push(newChild);
-  await saveChildren(children);
-  return newChild;
+  try {
+    // Eingabe-Validierung
+    if (!child.name || child.name.trim() === "") {
+      const error = new Error("Name darf nicht leer sein");
+      await logError("Storage.addChild", "Validierung fehlgeschlagen: Name fehlt", { child });
+      throw error;
+    }
+    
+    if (!child.grade || child.grade < 1 || child.grade > 4) {
+      const error = new Error("Klasse muss zwischen 1 und 4 liegen");
+      await logError("Storage.addChild", "Validierung fehlgeschlagen: Ungültige Klasse", { child });
+      throw error;
+    }
+
+    const children = await loadChildren();
+    const newChild: Child = {
+      ...child,
+      id: generateId(),
+      createdAt: new Date(),
+    };
+    children.push(newChild);
+    await saveChildren(children);
+    
+    // Erfolg loggen
+    await logSuccess("Storage.addChild", `Kind "${newChild.name}" hinzugefügt`, { id: newChild.id });
+    return newChild;
+  } catch (error) {
+    // Fehler protokollieren
+    await logError("Storage.addChild", "Kind konnte nicht hinzugefügt werden", { child }, error as Error);
+    throw error;
+  }
 }
 
 /**
  * Kind aktualisieren
  */
 export async function updateChild(id: string, updates: Partial<Child>): Promise<Child | null> {
-  const children = await loadChildren();
-  const index = children.findIndex((c) => c.id === id);
-  if (index === -1) return null;
+  try {
+    // Eingabe-Validierung
+    if (!id || id.trim() === "") {
+      const error = new Error("ID darf nicht leer sein");
+      await logError("Storage.updateChild", "Validierung fehlgeschlagen: ID fehlt", { id, updates });
+      throw error;
+    }
 
-  children[index] = { ...children[index], ...updates };
-  await saveChildren(children);
-  return children[index];
+    const children = await loadChildren();
+    const index = children.findIndex((c) => c.id === id);
+    
+    if (index === -1) {
+      await logWarning("Storage.updateChild", `Kind mit ID "${id}" nicht gefunden`, { id });
+      return null;
+    }
+
+    children[index] = { ...children[index], ...updates };
+    await saveChildren(children);
+    
+    // Erfolg loggen
+    await logSuccess("Storage.updateChild", `Kind "${children[index].name}" aktualisiert`, { id, updates });
+    return children[index];
+  } catch (error) {
+    // Fehler protokollieren
+    await logError("Storage.updateChild", "Kind konnte nicht aktualisiert werden", { id, updates }, error as Error);
+    throw error;
+  }
 }
 
 /**
  * Kind löschen
  */
 export async function deleteChild(id: string): Promise<boolean> {
-  const children = await loadChildren();
-  const filtered = children.filter((c) => c.id !== id);
-  if (filtered.length === children.length) return false;
+  try {
+    // Eingabe-Validierung
+    if (!id || id.trim() === "") {
+      const error = new Error("ID darf nicht leer sein");
+      await logError("Storage.deleteChild", "Validierung fehlgeschlagen: ID fehlt", { id });
+      throw error;
+    }
 
-  await saveChildren(filtered);
-  return true;
+    const children = await loadChildren();
+    const childToDelete = children.find((c) => c.id === id);
+    const filtered = children.filter((c) => c.id !== id);
+    
+    if (filtered.length === children.length) {
+      await logWarning("Storage.deleteChild", `Kind mit ID "${id}" nicht gefunden`, { id });
+      return false;
+    }
+
+    await saveChildren(filtered);
+    
+    // Erfolg loggen
+    await logSuccess("Storage.deleteChild", `Kind "${childToDelete?.name}" gelöscht`, { id });
+    return true;
+  } catch (error) {
+    // Fehler protokollieren
+    await logError("Storage.deleteChild", "Kind konnte nicht gelöscht werden", { id }, error as Error);
+    throw error;
+  }
 }
 
 // ============================================
@@ -157,15 +243,43 @@ export async function saveWishes(wishes: RewardWish[]): Promise<void> {
  * Wunsch hinzufügen
  */
 export async function addWish(wish: Omit<RewardWish, "id" | "createdAt">): Promise<RewardWish> {
-  const wishes = await loadWishes();
-  const newWish: RewardWish = {
-    ...wish,
-    id: generateId(),
-    createdAt: new Date(),
-  };
-  wishes.push(newWish);
-  await saveWishes(wishes);
-  return newWish;
+  try {
+    // Eingabe-Validierung
+    if (!wish.title || wish.title.trim() === "") {
+      const error = new Error("Titel darf nicht leer sein");
+      await logError("Storage.addWish", "Validierung fehlgeschlagen: Titel fehlt", { wish });
+      throw error;
+    }
+    
+    if (!wish.starPrice || wish.starPrice < 1) {
+      const error = new Error("Sterne-Preis muss mindestens 1 sein");
+      await logError("Storage.addWish", "Validierung fehlgeschlagen: Ungültiger Preis", { wish });
+      throw error;
+    }
+    
+    if (!wish.childId || wish.childId.trim() === "") {
+      const error = new Error("Kind-ID darf nicht leer sein");
+      await logError("Storage.addWish", "Validierung fehlgeschlagen: Kind-ID fehlt", { wish });
+      throw error;
+    }
+
+    const wishes = await loadWishes();
+    const newWish: RewardWish = {
+      ...wish,
+      id: generateId(),
+      createdAt: new Date(),
+    };
+    wishes.push(newWish);
+    await saveWishes(wishes);
+    
+    // Erfolg loggen
+    await logSuccess("Storage.addWish", `Wunsch "${newWish.title}" hinzugefügt`, { id: newWish.id, childId: wish.childId });
+    return newWish;
+  } catch (error) {
+    // Fehler protokollieren
+    await logError("Storage.addWish", "Wunsch konnte nicht hinzugefügt werden", { wish }, error as Error);
+    throw error;
+  }
 }
 
 /**
@@ -188,22 +302,48 @@ export async function updateWish(
  * Wunsch genehmigen
  */
 export async function approveWish(id: string, parentNote?: string): Promise<RewardWish | null> {
-  return updateWish(id, {
-    status: "approved",
-    approvedAt: new Date(),
-    parentNote,
-  });
+  try {
+    const result = await updateWish(id, {
+      status: "approved",
+      approvedAt: new Date(),
+      parentNote,
+    });
+    
+    if (result) {
+      await logSuccess("Storage.approveWish", `Wunsch "${result.title}" genehmigt`, { id, parentNote });
+    } else {
+      await logWarning("Storage.approveWish", `Wunsch mit ID "${id}" nicht gefunden`, { id });
+    }
+    
+    return result;
+  } catch (error) {
+    await logError("Storage.approveWish", "Wunsch konnte nicht genehmigt werden", { id, parentNote }, error as Error);
+    throw error;
+  }
 }
 
 /**
  * Wunsch ablehnen
  */
 export async function rejectWish(id: string, parentNote?: string): Promise<RewardWish | null> {
-  return updateWish(id, {
-    status: "rejected",
-    rejectedAt: new Date(),
-    parentNote,
-  });
+  try {
+    const result = await updateWish(id, {
+      status: "rejected",
+      rejectedAt: new Date(),
+      parentNote,
+    });
+    
+    if (result) {
+      await logSuccess("Storage.rejectWish", `Wunsch "${result.title}" abgelehnt`, { id, parentNote });
+    } else {
+      await logWarning("Storage.rejectWish", `Wunsch mit ID "${id}" nicht gefunden`, { id });
+    }
+    
+    return result;
+  } catch (error) {
+    await logError("Storage.rejectWish", "Wunsch konnte nicht abgelehnt werden", { id, parentNote }, error as Error);
+    throw error;
+  }
 }
 
 /**
@@ -243,40 +383,109 @@ export async function saveTasks(tasks: Task[]): Promise<void> {
  * Aufgabe hinzufügen
  */
 export async function addTask(task: Omit<Task, "id" | "createdAt">): Promise<Task> {
-  const tasks = await loadTasks();
-  const newTask: Task = {
-    ...task,
-    id: generateId(),
-    createdAt: new Date(),
-  };
-  tasks.push(newTask);
-  await saveTasks(tasks);
-  return newTask;
+  try {
+    // Eingabe-Validierung
+    if (!task.title || task.title.trim() === "") {
+      const error = new Error("Titel darf nicht leer sein");
+      await logError("Storage.addTask", "Validierung fehlgeschlagen: Titel fehlt", { task });
+      throw error;
+    }
+    
+    if (!task.childId || task.childId.trim() === "") {
+      const error = new Error("Kind-ID darf nicht leer sein");
+      await logError("Storage.addTask", "Validierung fehlgeschlagen: Kind-ID fehlt", { task });
+      throw error;
+    }
+    
+    if (!task.starsAwarded || task.starsAwarded < 1) {
+      const error = new Error("Sterne-Belohnung muss mindestens 1 sein");
+      await logError("Storage.addTask", "Validierung fehlgeschlagen: Ungültige Sterne-Anzahl", { task });
+      throw error;
+    }
+
+    const tasks = await loadTasks();
+    const newTask: Task = {
+      ...task,
+      id: generateId(),
+      createdAt: new Date(),
+    };
+    tasks.push(newTask);
+    await saveTasks(tasks);
+    
+    // Erfolg loggen
+    await logSuccess("Storage.addTask", `Aufgabe "${newTask.title}" hinzugefügt`, { id: newTask.id, childId: task.childId });
+    return newTask;
+  } catch (error) {
+    // Fehler protokollieren
+    await logError("Storage.addTask", "Aufgabe konnte nicht hinzugefügt werden", { task }, error as Error);
+    throw error;
+  }
 }
 
 /**
  * Aufgabe aktualisieren
  */
 export async function updateTask(id: string, updates: Partial<Task>): Promise<Task | null> {
-  const tasks = await loadTasks();
-  const index = tasks.findIndex((t) => t.id === id);
-  if (index === -1) return null;
+  try {
+    // Eingabe-Validierung
+    if (!id || id.trim() === "") {
+      const error = new Error("ID darf nicht leer sein");
+      await logError("Storage.updateTask", "Validierung fehlgeschlagen: ID fehlt", { id, updates });
+      throw error;
+    }
 
-  tasks[index] = { ...tasks[index], ...updates };
-  await saveTasks(tasks);
-  return tasks[index];
+    const tasks = await loadTasks();
+    const index = tasks.findIndex((t) => t.id === id);
+    
+    if (index === -1) {
+      await logWarning("Storage.updateTask", `Aufgabe mit ID "${id}" nicht gefunden`, { id });
+      return null;
+    }
+
+    tasks[index] = { ...tasks[index], ...updates };
+    await saveTasks(tasks);
+    
+    // Erfolg loggen
+    await logSuccess("Storage.updateTask", `Aufgabe "${tasks[index].title}" aktualisiert`, { id, updates });
+    return tasks[index];
+  } catch (error) {
+    // Fehler protokollieren
+    await logError("Storage.updateTask", "Aufgabe konnte nicht aktualisiert werden", { id, updates }, error as Error);
+    throw error;
+  }
 }
 
 /**
  * Aufgabe löschen
  */
 export async function deleteTask(id: string): Promise<boolean> {
-  const tasks = await loadTasks();
-  const filtered = tasks.filter((t) => t.id !== id);
-  if (filtered.length === tasks.length) return false;
+  try {
+    // Eingabe-Validierung
+    if (!id || id.trim() === "") {
+      const error = new Error("ID darf nicht leer sein");
+      await logError("Storage.deleteTask", "Validierung fehlgeschlagen: ID fehlt", { id });
+      throw error;
+    }
 
-  await saveTasks(filtered);
-  return true;
+    const tasks = await loadTasks();
+    const taskToDelete = tasks.find((t) => t.id === id);
+    const filtered = tasks.filter((t) => t.id !== id);
+    
+    if (filtered.length === tasks.length) {
+      await logWarning("Storage.deleteTask", `Aufgabe mit ID "${id}" nicht gefunden`, { id });
+      return false;
+    }
+
+    await saveTasks(filtered);
+    
+    // Erfolg loggen
+    await logSuccess("Storage.deleteTask", `Aufgabe "${taskToDelete?.title}" gelöscht`, { id });
+    return true;
+  } catch (error) {
+    // Fehler protokollieren
+    await logError("Storage.deleteTask", "Aufgabe konnte nicht gelöscht werden", { id }, error as Error);
+    throw error;
+  }
 }
 
 /**

@@ -48,7 +48,7 @@
 - [x] Daten löschen
 
 ## Navigation
-- [x] Bottom Tab Bar mit 5 Tabs
+- [x] Bottom Tab Bar mit 5 Tabs (+ Debug in DEV)
 - [x] Tab-Icons konfigurieren
 - [x] Haptic Feedback für Tabs
 
@@ -60,13 +60,26 @@
 - [x] Hefte Lese-Operationen
 - [ ] Daten-Sync zwischen Eltern- und Kinderapp (später)
 
+## Debug-System (NEU)
+- [x] Globales Logging-System erstellen
+- [x] Error-Handler mit detaillierten Fehlermeldungen
+- [x] Fehlerprotokollierung in allen Storage-Funktionen
+- [ ] Fehlerprotokollierung in allen Screen-Operationen
+- [x] Debug-Screen in Tab-Bar (nur in Debug-Version)
+- [x] Log-Einträge mit Timestamp, Typ, Kontext
+- [x] Logs exportieren/löschen Funktion
+- [x] Umfassende Code-Kommentierung (Deutsch)
+
 ## Testing & Optimierungen
-- [ ] Unit-Tests für Datenlogik
+- [x] Unit-Tests für Storage-Funktionen (14 Tests)
+- [ ] Unit-Tests für Debug-Logger
 - [ ] Manuelle Tests aller Flows
 - [ ] Performance-Optimierungen
 - [ ] Accessibility-Checks
 
 ## Dokumentation
-- [ ] README.md aktualisieren
-- [ ] Projektstruktur-Dokumentation
-- [ ] Kommentare in Code (Deutsch)
+- [x] README.md erstellen
+- [x] Design-Dokumentation (design.md)
+- [x] Kommentare in Storage-Code (Deutsch)
+- [x] Kommentare in Debug-Logger (Deutsch)
+- [ ] Projektstruktur-Dokumentation aktualisieren

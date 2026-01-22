@@ -85,6 +85,17 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />
+
+      {/* Debug (nur in Development) */}
+      {__DEV__ && (
+        <Tabs.Screen
+          name="debug"
+          options={{
+            title: "Debug",
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="gear" color={color} />,
+          }}
+        />
+      )}
     </Tabs>
   );
 }
